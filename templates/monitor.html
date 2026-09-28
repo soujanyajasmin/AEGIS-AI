@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block title %}Live Monitor | AEGIS AI Security{% endblock %}
+{% block page_title %}Live Premises Surveillance Monitor{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: 3fr 1fr; gap: 20px;">
+    <!-- Main Live Stream Monitor View -->
+    <div class="panel-card" style="margin-bottom: 0;">
+        <div class="panel-header">
+            <div class="panel-title">
+                <span>📹</span> Live Stream Console
+            </div>
+            <!-- Camera Selector Dropdown -->
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <label for="camera-select" style="font-size: 12px; color: var(--text-secondary);">Source:</label>
+                <select id="camera-select" class="form-control" style="width: auto; padding: 4px 10px; font-size: 12px;" onchange="handleCameraSwitch(this)">
+                    {% for cam in cameras %}
+                        <option value="{{ cam.id }}" {% if cam.id == status.camera_id %}selected{% endif %}>{{ cam.name }} ({{ cam.source_type }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="panel-body" style="padding: 16px;">
+            <div class="video-container" style="min-height: 520px; aspect-ratio: 16 / 9;">
+                <img id="main-video-feed" src="{{ url_for('monitoring.video_feed') }}" alt="Live Camera Feed" class="video-stream-img">
+            </div>
+
+            <!-- Control Bar Below Stream -->
+            <div style="margin-top: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: #0d1117; padding: 12px 16px; border-radius: 6px; border: 1px solid var(--border-color);">
+                <div class="stream-controls-bar">
+                    <button id="btn-start" class="btn-ctrl btn-primary" onclick="sendCameraCommand('start')">
+                        ▶ Start Monitoring
+                    </button>
+                    <button id="btn-stop" class="btn-ctrl btn-danger" onclick="sendCameraCommand('stop')" style="display:none;">
+                        ⏹ Stop Monitoring
+                    </button>
+                    <button id="btn-pause" class="btn-ctrl" onclick="sendCameraCommand('pause')">
+                        ⏸ Pause
+                    </button>
+                    <button id="btn-resume" class="btn-ctrl btn-primary" onclick="sendCameraCommand('resume')" style="display:none;">
+                        ⏵ Resume
+                    </button>
+                    <button class="btn-ctrl" onclick="sendCameraCommand('snapshot')">
+                        📸 Take Snapshot
+                    </button>
+                </div>
+
+                <div id="stream-fps-counter" style="font-family: var(--font-mono); font-size: 12px; color: var(--accent-cyan);">
+                    -- FPS | Initializing
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Live Telemetry & Feed Guide -->
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="panel-card" style="margin-bottom: 0;">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span>🏷️</span> Classification Legend
+                </div>
+            </div>
+            <div class="panel-body" style="padding: 14px; font-size: 12.5px;">
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span class="badge badge-known">KNOWN PERSON</span>
+                        <span style="color: var(--text-muted); font-size: 11px;">Enrolled Match</span>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span class="badge badge-unknown">UNKNOWN PERSON</span>
+                        <span style="color: var(--text-muted); font-size: 11px;">Unenrolled Visitor</span>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span class="badge badge-vehicle">VEHICLE</span>
+                        <span style="color: var(--text-muted); font-size: 11px;">Car / Bike / Bus</span>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span class="badge badge-animal">ANIMAL</span>
+                        <span style="color: var(--text-muted); font-size: 11px;">Dog / Cat / Wildlife</span>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span class="badge" style="background: rgba(0, 220, 255, 0.2); color: #00dcff; border: 1px solid #00dcff;">VIRTUAL LINE</span>
+                        <span style="color: var(--text-muted); font-size: 11px;">Entry / Exit Line</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Help & Shortcuts -->
+        <div class="panel-card" style="margin-bottom: 0;">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <span>💡</span> Operator Guide
+                </div>
+            </div>
+            <div class="panel-body" style="padding: 14px; font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
+                <p>• <strong>Entry/Exit Detection</strong>: Moving across the virtual cyan boundary automatically logs direction vector.</p>
+                <p style="margin-top: 8px;">• <strong>Face Recognition</strong>: Faces visible inside human detections are extracted and compared against enrolled embeddings in real-time.</p>
+                <p style="margin-top: 8px;">• <strong>Cooldown Filter</strong>: Redundant snapshots are throttled per configurable interval to prevent database flood.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/monitor.js') }}"></script>
+{% endblock %}

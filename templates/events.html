@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Events & Logs | AEGIS AI Security{% endblock %}
+{% block page_title %}Security Events & Detection Log{% endblock %}
+
+{% block content %}
+<!-- Filtering Bar -->
+<div class="filter-bar">
+    <div class="filter-item">
+        <label class="form-label">Date</label>
+        <input type="date" id="filter-date" class="form-control" onchange="loadEvents(1)">
+    </div>
+
+    <div class="filter-item">
+        <label class="form-label">Entity Category</label>
+        <select id="filter-entity" class="form-control" onchange="loadEvents(1)">
+            <option value="ALL">All Entities</option>
+            <option value="PERSON">Person</option>
+            <option value="VEHICLE">Vehicle</option>
+            <option value="ANIMAL">Animal</option>
+            <option value="OTHER">Other Objects</option>
+        </select>
+    </div>
+
+    <div class="filter-item">
+        <label class="form-label">Recognition</label>
+        <select id="filter-recognition" class="form-control" onchange="loadEvents(1)">
+            <option value="ALL">All Statuses</option>
+            <option value="KNOWN">Known Person</option>
+            <option value="UNKNOWN">Unknown Person</option>
+            <option value="NOT_APPLICABLE">Not Applicable</option>
+        </select>
+    </div>
+
+    <div class="filter-item">
+        <label class="form-label">Direction</label>
+        <select id="filter-direction" class="form-control" onchange="loadEvents(1)">
+            <option value="ALL">All Directions</option>
+            <option value="ENTRY">Entry</option>
+            <option value="EXIT">Exit</option>
+            <option value="NONE">Static / Non-crossing</option>
+        </select>
+    </div>
+
+    <div class="filter-item">
+        <label class="form-label">Person</label>
+        <select id="filter-person" class="form-control" onchange="loadEvents(1)">
+            <option value="ALL">All Persons</option>
+            {% for p in persons %}
+                <option value="{{ p.id }}">{{ p.name }} ({{ p.person_code or 'ID' }})</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div style="display: flex; gap: 8px;">
+        <button class="btn-ctrl btn-primary" onclick="loadEvents(1)">
+            🔍 Apply Filters
+        </button>
+        <button class="btn-ctrl" onclick="resetFilters()">
+            ↺ Reset
+        </button>
+        <a id="export-csv-btn" href="{{ url_for('events.export_events_csv') }}" class="btn-ctrl" target="_blank">
+            📥 Export CSV
+        </a>
+    </div>
+</div>
+
+<!-- Events Table Panel -->
+<div class="panel-card">
+    <div class="panel-header">
+        <div class="panel-title">
+            <span>📋</span> Filtered Detections (<span id="total-count">0</span> Total)
+        </div>
+        <div id="pagination-controls" style="display: flex; gap: 6px; align-items: center;">
+            <button id="btn-prev" class="btn-ctrl" onclick="changePage(-1)" disabled>« Prev</button>
+            <span id="page-indicator" style="font-size: 12px; color: var(--text-secondary); margin: 0 4px;">Page 1</span>
+            <button id="btn-next" class="btn-ctrl" onclick="changePage(1)" disabled>Next »</button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Snapshot</th>
+                    <th>ID</th>
+                    <th>Entity Type</th>
+                    <th>Entity / Subject</th>
+                    <th>Status</th>
+                    <th>Direction</th>
+                    <th>Confidence</th>
+                    <th>Timestamp</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="events-tbody">
+                <tr>
+                    <td colspan="9" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                        Loading security events...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Event Detail Modal -->
+<div id="event-detail-modal" class="modal-backdrop">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3 class="modal-title">Event Snapshot & Forensic Telemetry</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="modal-body-content">
+            <!-- Dynamic Content -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn-ctrl" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentPage = 1;
+let totalPages = 1;
+
+function loadEvents(page = 1) {
+    currentPage = page;
+    const date = document.getElementById("filter-date").value;
+    const entity = document.getElementById("filter-entity").value;
+    const rec = document.getElementById("filter-recognition").value;
+    const dir = document.getElementById("filter-direction").value;
+    const person = document.getElementById("filter-person").value;
+
+    let url = `/api/events?page=${page}&per_page=20`;
+    if (date) url += `&date=${encodeURIComponent(date)}`;
+    if (entity !== "ALL") url += `&entity_type=${encodeURIComponent(entity)}`;
+    if (rec !== "ALL") url += `&recognition_status=${encodeURIComponent(rec)}`;
+    if (dir !== "ALL") url += `&direction=${encodeURIComponent(dir)}`;
+    if (person !== "ALL") url += `&person_id=${encodeURIComponent(person)}`;
+
+    // Update Export link
+    document.getElementById("export-csv-btn").href = `/api/events/export?entity_type=${entity}&recognition_status=${rec}`;
+
+    fetch(url)
+        .then(res => res.json())
+        .then(res => {
+            if (res.status === "success") {
+                renderEventsTable(res.events);
+                totalPages = res.pages || 1;
+                document.getElementById("total-count").textContent = res.total;
+                document.getElementById("page-indicator").textContent = `Page ${res.page} of ${Math.max(1, res.pages)}`;
+                document.getElementById("btn-prev").disabled = !res.has_prev;
+                document.getElementById("btn-next").disabled = !res.has_next;
+            }
+        })
+        .catch(err => console.error("Error fetching events:", err));
+}
+
+function renderEventsTable(events) {
+    const tbody = document.getElementById("events-tbody");
+    if (!events || events.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--text-muted);">No matching security events found.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = events.map(ev => {
+        let badgeHTML = "";
+        if (ev.recognition_status === "KNOWN") {
+            badgeHTML = `<span class="badge badge-known">KNOWN: ${escapeHTML(ev.person_name)}</span>`;
+        } else if (ev.recognition_status === "UNKNOWN") {
+            badgeHTML = `<span class="badge badge-unknown">UNKNOWN PERSON</span>`;
+        } else if (ev.entity_type === "VEHICLE") {
+            badgeHTML = `<span class="badge badge-vehicle">${escapeHTML(ev.entity_name)}</span>`;
+        } else if (ev.entity_type === "ANIMAL") {
+            badgeHTML = `<span class="badge badge-animal">${escapeHTML(ev.entity_name)}</span>`;
+        } else {
+            badgeHTML = `<span class="badge" style="background:#21262d;color:#8b949e;">${escapeHTML(ev.entity_type)}</span>`;
+        }
+
+        let dirBadge = "—";
+        if (ev.direction === "ENTRY") dirBadge = `<span class="badge badge-entry">↓ ENTRY</span>`;
+        else if (ev.direction === "EXIT") dirBadge = `<span class="badge badge-exit">↑ EXIT</span>`;
+
+        let snapHTML = `<span style="color:var(--text-muted);font-size:11px;">No snap</span>`;
+        if (ev.snapshot_path) {
+            snapHTML = `<img src="/storage/${ev.snapshot_path}" alt="Snap" class="thumbnail-img" onclick="openEventModal(${ev.id})">`;
+        }
+
+        return `
+            <tr>
+                <td>${snapHTML}</td>
+                <td style="font-family:var(--font-mono);font-size:11.5px;color:var(--text-muted);">#${ev.id}</td>
+                <td><strong>${escapeHTML(ev.entity_type)}</strong></td>
+                <td>${escapeHTML(ev.entity_name)}</td>
+                <td>${badgeHTML}</td>
+                <td>${dirBadge}</td>
+                <td style="font-family:var(--font-mono);font-size:12px;">${ev.confidence_percent}</td>
+                <td style="font-size:12px;">
+                    <div>${ev.time}</div>
+                    <div style="font-size:10.5px;color:var(--text-muted);">${ev.date}</div>
+                </td>
+                <td>
+                    <button class="btn-ctrl" onclick="openEventModal(${ev.id})" style="padding:3px 8px;font-size:11px;">View</button>
+                </td>
+            </tr>
+        `;
+    }).join("");
+}
+
+function openEventModal(eventId) {
+    fetch(`/api/events/${eventId}`)
+        .then(res => res.json())
+        .then(res => {
+            if (res.status === "success") {
+                const ev = res.event;
+                const modal = document.getElementById("event-detail-modal");
+                const content = document.getElementById("modal-body-content");
+
+                content.innerHTML = `
+                    <div style="margin-bottom: 16px; text-align: center;">
+                        ${ev.snapshot_path ? `<img src="/storage/${ev.snapshot_path}" alt="High Res Snapshot" style="max-width:100%;border-radius:6px;border:1px solid var(--border-color);">` : '<p style="color:var(--text-muted);">No snapshot recorded</p>'}
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+                        <div><strong>Event ID:</strong> #${ev.id}</div>
+                        <div><strong>Camera:</strong> ${escapeHTML(ev.camera_name)}</div>
+                        <div><strong>Entity:</strong> ${escapeHTML(ev.entity_type)} (${escapeHTML(ev.entity_name)})</div>
+                        <div><strong>Recognition:</strong> ${escapeHTML(ev.recognition_status)}</div>
+                        <div><strong>Direction:</strong> ${escapeHTML(ev.direction)}</div>
+                        <div><strong>Confidence:</strong> ${ev.confidence_percent}</div>
+                        <div><strong>Date & Time:</strong> ${ev.timestamp}</div>
+                    </div>
+                `;
+                modal.classList.add("show");
+            }
+        });
+}
+
+function closeModal() {
+    document.getElementById("event-detail-modal").classList.remove("show");
+}
+
+function changePage(delta) {
+    const target = currentPage + delta;
+    if (target >= 1 && target <= totalPages) {
+        loadEvents(target);
+    }
+}
+
+function resetFilters() {
+    document.getElementById("filter-date").value = "";
+    document.getElementById("filter-entity").value = "ALL";
+    document.getElementById("filter-recognition").value = "ALL";
+    document.getElementById("filter-direction").value = "ALL";
+    document.getElementById("filter-person").value = "ALL";
+    loadEvents(1);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadEvents(1);
+});
+</script>
+{% endblock %}

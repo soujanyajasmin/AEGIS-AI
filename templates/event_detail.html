@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Event Details #{{ event.id }} | AEGIS AI{% endblock %}
+{% block page_title %}Security Event Analysis #{{ event.id }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div style="margin-bottom: 16px;">
+        <a href="{{ url_for('events.index') }}" class="btn-ctrl">← Back to Events Log</a>
+    </div>
+
+    <div class="panel-card">
+        <div class="panel-header">
+            <div class="panel-title">
+                <span>🔍</span> Event Record Forensics
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 12px; color: var(--accent-cyan);">{{ event.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+        </div>
+        <div class="panel-body">
+            <div style="margin-bottom: 24px; text-align: center; background: #000; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color);">
+                {% if event.snapshot_path %}
+                    <img src="{{ url_for('storage_routes.serve_storage_file', filename=event.snapshot_path) }}" alt="Event High-Res Snapshot" style="max-width: 100%; max-height: 480px; object-fit: contain; border-radius: 4px;">
+                {% else %}
+                    <p style="color: var(--text-muted); padding: 40px 0;">No snapshot file associated with this event.</p>
+                {% endif %}
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; font-size: 13.5px;">
+                <div style="background: #0d1117; padding: 16px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <h4 style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; text-transform: uppercase;">Entity Classification</h4>
+                    <p style="margin-bottom: 6px;"><strong>Type:</strong> {{ event.entity_type }}</p>
+                    <p style="margin-bottom: 6px;"><strong>Name / Subject:</strong> {{ event.entity_name }}</p>
+                    <p style="margin-bottom: 6px;">
+                        <strong>Recognition Status:</strong>
+                        {% if event.recognition_status == 'KNOWN' %}
+                            <span class="badge badge-known">KNOWN</span>
+                        {% elif event.recognition_status == 'UNKNOWN' %}
+                            <span class="badge badge-unknown">UNKNOWN</span>
+                        {% else %}
+                            <span class="badge" style="background:#21262d;color:#8b949e;">{{ event.recognition_status }}</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Model Confidence:</strong> {{ (event.confidence * 100)|int }}%</p>
+                </div>
+
+                <div style="background: #0d1117; padding: 16px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <h4 style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; text-transform: uppercase;">Context & Trajectory</h4>
+                    <p style="margin-bottom: 6px;"><strong>Camera:</strong> {{ event.camera.name if event.camera else 'Camera #1' }}</p>
+                    <p style="margin-bottom: 6px;">
+                        <strong>Boundary Direction:</strong>
+                        {% if event.direction == 'ENTRY' %}
+                            <span class="badge badge-entry">ENTRY</span>
+                        {% elif event.direction == 'EXIT' %}
+                            <span class="badge badge-exit">EXIT</span>
+                        {% else %}
+                            <span>None / Stationary</span>
+                        {% endif %}
+                    </p>
+                    <p style="margin-bottom: 6px;"><strong>Event Category:</strong> {{ event.event_type }}</p>
+                    <p><strong>Associated Person:</strong> {{ event.person.name if event.person else 'None' }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

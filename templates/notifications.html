@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Security Notifications | AEGIS AI Security{% endblock %}
+{% block page_title %}Security Alerts & Incident Stream{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <p style="font-size: 13.5px; color: var(--text-secondary);">
+        Real-time telemetry alerts generated for unknown individuals, suspicious perimeter activity, and line crossings.
+    </p>
+    <div style="display: flex; gap: 10px;">
+        <button class="btn-ctrl" onclick="markAllAsRead()">
+            ✓ Mark All As Read
+        </button>
+    </div>
+</div>
+
+<div class="panel-card">
+    <div class="panel-header">
+        <div class="panel-title">
+            <span>🔔</span> Incident Notification Log
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Severity</th>
+                    <th>Alert Title</th>
+                    <th>Incident Details</th>
+                    <th>Snapshot</th>
+                    <th>Timestamp</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if notifications %}
+                    {% for n in notifications %}
+                    <tr style="{% if not n.read_status %}background-color: rgba(56, 139, 253, 0.05);{% endif %}">
+                        <td>
+                            {% if n.read_status %}
+                                <span style="color: var(--text-muted); font-size: 11px;">READ</span>
+                            {% else %}
+                                <span class="badge badge-unknown" style="font-size: 9px; padding: 2px 6px;">NEW</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if n.severity == 'critical' %}
+                                <span class="badge badge-unknown">CRITICAL</span>
+                            {% elif n.severity == 'warning' %}
+                                <span class="badge badge-animal">WARNING</span>
+                            {% else %}
+                                <span class="badge badge-vehicle">INFO</span>
+                            {% endif %}
+                        </td>
+                        <td><strong>{{ n.title }}</strong></td>
+                        <td style="font-size: 12.5px; color: var(--text-primary);">{{ n.message }}</td>
+                        <td>
+                            {% if n.event and n.event.snapshot_path %}
+                                <a href="{{ url_for('storage_routes.serve_storage_file', filename=n.event.snapshot_path) }}" target="_blank">
+                                    <img src="{{ url_for('storage_routes.serve_storage_file', filename=n.event.snapshot_path) }}" alt="Snapshot" class="thumbnail-img">
+                                </a>
+                            {% else %}
+                                <span style="color: var(--text-muted); font-size: 11px;">No snap</span>
+                            {% endif %}
+                        </td>
+                        <td style="font-size: 12px;">
+                            <div>{{ n.created_at.strftime('%H:%M:%S') }}</div>
+                            <div style="font-size: 10px; color: var(--text-muted);">{{ n.created_at.strftime('%Y-%m-%d') }}</div>
+                        </td>
+                        <td>
+                            {% if not n.read_status %}
+                                <button class="btn-ctrl" onclick="markRead({{ n.id }})" style="padding: 3px 8px; font-size: 11px;">
+                                    Mark Read
+                                </button>
+                            {% else %}
+                                <span style="color: var(--text-muted); font-size: 11px;">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                            No security notifications recorded. System is clear.
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function markRead(id) {
+    fetch(`/api/notifications/${id}/read`, { method: "POST" })
+        .then(res => res.json())
+        .then(res => {
+            if (res.status === "success") {
+                window.location.reload();
+            }
+        });
+}
+
+function markAllAsRead() {
+    fetch("/api/notifications/read-all", { method: "POST" })
+        .then(res => res.json())
+        .then(res => {
+            if (res.status === "success") {
+                window.location.reload();
+            }
+        });
+}
+</script>
+{% endblock %}

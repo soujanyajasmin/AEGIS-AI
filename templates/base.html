@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AEGIS AI | Intelligent Premises Security & Surveillance{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Chart.js for Telemetry Visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Main Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        {% if session.get('user_id') %}
+        <aside class="app-sidebar">
+            <div class="sidebar-header">
+                <div class="logo-badge">🛡️</div>
+                <div class="brand-text">
+                    <h1>AEGIS AI</h1>
+                    <p>PREMISES SECURITY</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('dashboard.index') }}" class="nav-item {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+                    <span class="icon">📊</span> Dashboard
+                </a>
+                <a href="{{ url_for('monitoring.monitor') }}" class="nav-item {% if request.endpoint == 'monitoring.monitor' %}active{% endif %}">
+                    <span class="icon">📹</span> Live Monitoring
+                </a>
+                <a href="{{ url_for('events.index') }}" class="nav-item {% if request.endpoint in ['events.index', 'events.detail'] %}active{% endif %}">
+                    <span class="icon">🚨</span> Events & Log
+                </a>
+                <a href="{{ url_for('people.index') }}" class="nav-item {% if request.endpoint == 'people.index' %}active{% endif %}">
+                    <span class="icon">👥</span> People
+                </a>
+                <a href="{{ url_for('people.face_enrollment') }}" class="nav-item {% if request.endpoint == 'people.face_enrollment' %}active{% endif %}">
+                    <span class="icon">👤</span> Face Enrollment
+                </a>
+                <a href="{{ url_for('cameras.index') }}" class="nav-item {% if request.endpoint == 'cameras.index' %}active{% endif %}">
+                    <span class="icon">🎥</span> Cameras
+                </a>
+                <a href="{{ url_for('notifications.index') }}" class="nav-item {% if request.endpoint == 'notifications.index' %}active{% endif %}">
+                    <span class="icon">🔔</span> Notifications
+                    <span id="nav-unread-badge" class="nav-badge" style="{% if unread_notifications_count == 0 %}display:none;{% endif %}">
+                        {{ unread_notifications_count }}
+                    </span>
+                </a>
+                <a href="{{ url_for('storage_routes.index') }}" class="nav-item {% if request.endpoint == 'storage_routes.index' %}active{% endif %}">
+                    <span class="icon">💾</span> Storage & Retention
+                </a>
+                <a href="{{ url_for('settings.index') }}" class="nav-item {% if request.endpoint == 'settings.index' %}active{% endif %}">
+                    <span class="icon">⚙️</span> Settings
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">{{ session.get('username', 'U')[0]|upper }}</div>
+                    <div class="user-meta">
+                        <h4>{{ session.get('full_name') or session.get('username') }}</h4>
+                        <span>{{ session.get('user_role', 'monitor') }}</span>
+                    </div>
+                </div>
+                <a href="{{ url_for('auth.logout') }}" class="logout-btn" title="Logout">🚪</a>
+            </div>
+        </aside>
+        {% endif %}
+
+        <!-- Main Workspace -->
+        <main class="app-main">
+            {% if session.get('user_id') %}
+            <header class="top-bar">
+                <div class="top-bar-title">
+                    {% block page_title %}Dashboard{% endblock %}
+                    <div id="camera-status-indicator" class="camera-status-pill {% if not camera_status.online %}offline{% endif %}">
+                        <span class="pulse-dot"></span>
+                        {% if camera_status.online %}
+                            🟢 Camera Online ({{ camera_status.fps }} FPS)
+                        {% else %}
+                            🔴 Camera Offline
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="top-bar-actions">
+                    <a href="{{ url_for('monitoring.monitor') }}" class="action-icon-btn">
+                        <span>📹</span> Live Stream
+                    </a>
+                    <a href="{{ url_for('notifications.index') }}" class="action-icon-btn">
+                        <span>🔔</span> Alerts
+                    </a>
+                </div>
+            </header>
+            {% endif %}
+
+            <div class="page-container">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        <div class="flash-container">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }}">
+                                    <span>{{ message }}</span>
+                                    <button onclick="this.parentElement.remove()" style="background:none;border:none;color:inherit;cursor:pointer;">&times;</button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Main Content Block -->
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Notification Toast Mountpoint -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Core Scripts -->
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

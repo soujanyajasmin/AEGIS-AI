@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Storage & 30-Day Retention | AEGIS AI Security{% endblock %}
+{% block page_title %}Storage Metrics & Data Retention Management{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <p style="font-size: 13.5px; color: var(--text-secondary);">
+        Automated data lifecycle management. Files and event records older than {{ retention_days }} days are systematically purged.
+    </p>
+    <button class="btn-ctrl btn-danger" onclick="triggerManualCleanup()">
+        🧹 Run Retention Cleanup Now
+    </button>
+</div>
+
+<!-- Storage Metrics Cards -->
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+    <div class="stat-card purple">
+        <div class="stat-header">
+            <span>Total Storage Consumed</span>
+            <span>💾</span>
+        </div>
+        <div class="stat-value">{{ stats.total_size_mb }} MB</div>
+        <div class="stat-subtext">Snapshots + Biometrics</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <span>Captured Snapshots</span>
+            <span>📸</span>
+        </div>
+        <div class="stat-value">{{ stats.snapshots_count }}</div>
+        <div class="stat-subtext">{{ stats.snapshots_size_mb }} MB total image storage</div>
+    </div>
+
+    <div class="stat-card emerald">
+        <div class="stat-header">
+            <span>Database Event Records</span>
+            <span>🗄️</span>
+        </div>
+        <div class="stat-value">{{ total_events }}</div>
+        <div class="stat-subtext">{{ total_notifications }} incident notifications</div>
+    </div>
+
+    <div class="stat-card cyan">
+        <div class="stat-header">
+            <span>Data Retention Window</span>
+            <span>⏳</span>
+        </div>
+        <div class="stat-value">{{ retention_days }} Days</div>
+        <div class="stat-subtext">Auto background cleanup active</div>
+    </div>
+
+    <div class="stat-card amber">
+        <div class="stat-header">
+            <span>Oldest Snapshot on Record</span>
+            <span>📅</span>
+        </div>
+        <div class="stat-value" style="font-size: 18px; line-height: 1.6;">{{ stats.oldest_snapshot }}</div>
+        <div class="stat-subtext">Earliest stored image file</div>
+    </div>
+</div>
+
+<!-- Retention Architecture Details Panel -->
+<div class="panel-card">
+    <div class="panel-header">
+        <div class="panel-title">
+            <span>⚙️</span> Retention Policy & Storage Directory Structure
+        </div>
+    </div>
+    <div class="panel-body" style="font-size: 13px; line-height: 1.6;">
+        <div style="background: #0d1117; padding: 16px; border-radius: 6px; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 12px; margin-bottom: 16px;">
+            storage/<br>
+            ├── snapshots/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Hierarchical date partitioned folders]<br>
+            │&nbsp;&nbsp; └── YYYY/<br>
+            │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └── MM/<br>
+            │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └── DD/<br>
+            │&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; └── event_{timestamp}_{uuid}.jpg<br>
+            └── face_data/ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[Verified biometric facial crops]<br>
+            &nbsp;&nbsp;&nbsp; └── person_{id}_{uuid}.jpg
+        </div>
+
+        <h4 style="font-size: 14px; margin-bottom: 8px; color: #fff;">Automatic Cleanup Lifecycle:</h4>
+        <p>1. <strong>Nightly Background Daemon</strong>: A dedicated thread verifies timestamps every 24 hours against the configured <code style="color: var(--accent-cyan);">RETENTION_DAYS</code> threshold.</p>
+        <p>2. <strong>Synchronized Deletion</strong>: When an event exceeds the retention threshold, its snapshot JPG file is purged from disk, empty date folders are pruned, and corresponding SQLite rows in both <code style="color: #58a6ff;">events</code> and <code style="color: #58a6ff;">notifications</code> are removed in a single atomic database transaction.</p>
+        <p>3. <strong>Manual Cleanup</strong>: Administrators can trigger an immediate retention sweep at any time using the "Run Retention Cleanup Now" button above.</p>
+    </div>
+</div>
+
+<!-- Cleanup Result Alert Modal -->
+<div id="cleanup-modal" class="modal-backdrop">
+    <div class="modal-dialog">
+        <div class="modal-header">
+            <h3 class="modal-title">Retention Sweep Results</h3>
+            <button class="modal-close" onclick="closeCleanupModal()">&times;</button>
+        </div>
+        <div class="modal-body" id="cleanup-modal-body">
+            <!-- Dynamic cleanup summary -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn-ctrl btn-primary" onclick="closeCleanupModal(); window.location.reload();">Done</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function triggerManualCleanup() {
+    if (!confirm("Run 30-day retention cleanup now?\nThis will purge all snapshots and database records older than {{ retention_days }} days.")) {
+        return;
+    }
+
+    const modal = document.getElementById("cleanup-modal");
+    const body = document.getElementById("cleanup-modal-body");
+    body.innerHTML = `<p style="color: var(--accent-cyan);">Performing retention sweep across file system and database...</p>`;
+    modal.classList.add("show");
+
+    fetch("/api/cleanup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+    })
+    .then(res => res.json())
+    .then(report => {
+        body.innerHTML = `
+            <div style="background: rgba(35, 134, 54, 0.15); border: 1px solid #238636; padding: 14px; border-radius: 6px; margin-bottom: 14px;">
+                <strong style="color: #3fb950;">✓ Retention Sweep Successfully Executed</strong>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 13px;">
+                <div><strong>Cutoff Timestamp:</strong> <span style="font-family: var(--font-mono);">${report.cutoff_date}</span></div>
+                <div><strong>Database Events Purged:</strong> ${report.deleted_events}</div>
+                <div><strong>Snapshot Files Deleted:</strong> ${report.deleted_files}</div>
+                <div><strong>Disk Space Reclaimed:</strong> <strong style="color: #58a6ff;">${report.freed_mb} MB</strong></div>
+            </div>
+        `;
+    })
+    .catch(err => {
+        body.innerHTML = `<div class="alert alert-danger">Error executing cleanup: ${err}</div>`;
+    });
+}
+
+function closeCleanupModal() {
+    document.getElementById("cleanup-modal").classList.remove("show");
+}
+</script>
+{% endblock %}
