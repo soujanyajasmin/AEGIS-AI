@@ -220,10 +220,22 @@ python scripts/create_admin.py
 *(Or pass custom credentials: `python scripts/create_admin.py <username> <password> <fullname>`)*
 
 ### Step 7: Start the Application
+
+You can run AEGIS AI as either a **Web Application (Flask)** or a **Native Desktop GUI Application (Kivy)**:
+
+#### Option A: Run Kivy Native Desktop Application
+```powershell
+py -3.12 run_kivy.py
+# or
+python run_kivy.py
+```
+*Launches the modern cyber-security dark-themed desktop suite with live hardware-accelerated video monitoring, active HUD telemetry, interactive biometric face enrollment, and forensic event logs.*
+
+#### Option B: Run Flask Web Application
 ```powershell
 python app.py
 ```
-Open your browser to: **http://127.0.0.1:5000**
+Open your browser to: **http://127.0.0.1:10000**
 
 ---
 

@@ -378,3 +378,51 @@
 2026-09-28 22:24:19,096 [INFO] [werkzeug] 127.0.0.1 - - [28/Sep/2026 22:24:19] "GET /api/statistics HTTP/1.1" 200 -
 2026-09-28 22:24:20,544 [INFO] [werkzeug] 127.0.0.1 - - [28/Sep/2026 22:24:20] "GET /storage/snapshots/2026/09/28/person_detection_165420_99b07c39.jpg HTTP/1.1" 200 -
 2026-09-28 22:24:24,206 [INFO] [werkzeug] 127.0.0.1 - - [28/Sep/2026 22:24:24] "GET /api/statistics HTTP/1.1" 200 -
+2026-09-29 00:15:17,268 [INFO] [PremisesSecurity] Initializing Intelligent Premises Monitoring & Security System...
+2026-09-29 00:15:17,805 [INFO] [PremisesSecurity] Application initialized and monitoring service started.
+2026-09-29 00:15:18,094 [INFO] [werkzeug] WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:10000
+ * Running on http://192.168.1.3:10000
+2026-09-29 00:15:18,118 [INFO] [werkzeug] Press CTRL+C to quit
+2026-09-29 00:15:28,397 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:28] "GET / HTTP/1.1" 302 -
+2026-09-29 00:15:28,898 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:28] "GET /login?next=http://127.0.0.1:10000/ HTTP/1.1" 200 -
+2026-09-29 00:15:29,227 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:29] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-09-29 00:15:29,283 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:29] "GET /static/js/notifications.js HTTP/1.1" 200 -
+2026-09-29 00:15:29,892 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:29] "GET /api/notifications/stream HTTP/1.1" 401 -
+2026-09-29 00:15:29,926 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:29] "GET /favicon.ico HTTP/1.1" 404 -
+2026-09-29 00:15:38,942 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:38] "GET / HTTP/1.1" 302 -
+2026-09-29 00:15:38,982 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:38] "GET /login?next=http://127.0.0.1:10000/ HTTP/1.1" 200 -
+2026-09-29 00:15:39,058 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:39] "GET /static/css/style.css HTTP/1.1" 200 -
+2026-09-29 00:15:39,059 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:39] "GET /static/js/notifications.js HTTP/1.1" 200 -
+2026-09-29 00:15:39,669 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:39] "GET /api/notifications/stream HTTP/1.1" 401 -
+2026-09-29 00:15:39,758 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:39] "GET /favicon.ico HTTP/1.1" 404 -
+2026-09-29 00:15:51,908 [INFO] [routes.auth] Successful login for user 'admin' (role: admin)
+2026-09-29 00:15:51,912 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:51] "POST /login HTTP/1.1" 302 -
+2026-09-29 00:15:52,334 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /dashboard HTTP/1.1" 200 -
+2026-09-29 00:15:52,444 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /static/css/style.css HTTP/1.1" 304 -
+2026-09-29 00:15:52,482 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /video_feed HTTP/1.1" 200 -
+2026-09-29 00:15:52,569 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /storage/snapshots/2026/09/28/animal_detection_184544_ea559150.jpg HTTP/1.1" 200 -
+2026-09-29 00:15:52,615 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /storage/snapshots/2026/09/28/person_detection_184532_1e495e59.jpg HTTP/1.1" 200 -
+2026-09-29 00:15:52,618 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /storage/snapshots/2026/09/28/animal_detection_184549_22ea5e83.jpg HTTP/1.1" 200 -
+2026-09-29 00:15:52,652 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /static/js/notifications.js HTTP/1.1" 304 -
+2026-09-29 00:15:52,653 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /storage/snapshots/2026/09/28/person_detection_184531_5ecf919b.jpg HTTP/1.1" 200 -
+2026-09-29 00:15:52,714 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /static/js/dashboard.js HTTP/1.1" 200 -
+2026-09-29 00:15:52,765 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /storage/snapshots/2026/09/28/animal_detection_183119_6dadc108.jpg HTTP/1.1" 200 -
+2026-09-29 00:15:52,802 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /storage/snapshots/2026/09/28/other_detection_182959_b35b5119.jpg HTTP/1.1" 200 -
+2026-09-29 00:15:52,819 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /storage/snapshots/2026/09/28/person_detection_183111_71849d98.jpg HTTP/1.1" 200 -
+2026-09-29 00:15:52,845 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /storage/snapshots/2026/09/28/person_detection_182955_0d3db90f.jpg HTTP/1.1" 200 -
+2026-09-29 00:15:52,976 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /storage/snapshots/2026/09/28/animal_detection_182952_8b269d39.jpg HTTP/1.1" 200 -
+2026-09-29 00:15:52,982 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:52] "GET /storage/snapshots/2026/09/28/animal_detection_182953_bffbd777.jpg HTTP/1.1" 200 -
+2026-09-29 00:15:53,051 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:53] "GET /api/notifications/stream HTTP/1.1" 200 -
+2026-09-29 00:15:53,381 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:53] "GET /api/statistics HTTP/1.1" 200 -
+2026-09-29 00:15:53,559 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:53] "GET /api/statistics HTTP/1.1" 200 -
+2026-09-29 00:15:58,156 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:15:58] "GET /api/statistics HTTP/1.1" 200 -
+2026-09-29 00:16:02,611 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:16:02] "GET /storage/snapshots/2026/09/28/person_detection_184602_93ed0dd4.jpg HTTP/1.1" 200 -
+2026-09-29 00:16:02,637 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:16:02] "GET /favicon.ico HTTP/1.1" 404 -
+2026-09-29 00:16:03,180 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:16:03] "GET /api/statistics HTTP/1.1" 200 -
+2026-09-29 00:16:08,180 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:16:08] "GET /api/statistics HTTP/1.1" 200 -
+2026-09-29 00:16:13,146 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:16:13] "GET /api/statistics HTTP/1.1" 200 -
+2026-09-29 00:16:18,167 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:16:18] "GET /api/statistics HTTP/1.1" 200 -
+2026-09-29 00:16:23,167 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:16:23] "GET /api/statistics HTTP/1.1" 200 -
+2026-09-29 00:16:28,171 [INFO] [werkzeug] 127.0.0.1 - - [29/Sep/2026 00:16:28] "GET /api/statistics HTTP/1.1" 200 -

@@ -1,0 +1,13 @@
+# AEGIS AI - Kivy Desktop Application Dependencies
+kivy[base]>=2.3.0
+kivy-deps.sdl2
+kivy-deps.glew
+kivy-deps.angle
+opencv-python>=4.8.0
+ultralytics>=8.0.0
+torch
+torchvision
+Flask>=3.0.0
+Flask-SQLAlchemy>=3.1.0
+python-dotenv
+Pillow
